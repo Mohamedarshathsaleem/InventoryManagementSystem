@@ -1,25 +1,23 @@
 <template>
-  <div>
-    <div class="login-container">
-      <h2>Login</h2>
-      <form @submit.prevent="login">
-        <div class="form-row">
-          <label for="username">Username:</label>
-          <input v-model="username" type="text" id="username" required />
-        </div>
-        <div class="form-row">
-          <label for="password">Password:</label>
-          <input v-model="password" type="password" id="password" required />
-        </div>
-        <button type="submit">Login</button>
-        <p class="register-link">
-          Don't have an account?
-          <router-link to="/register">Register here</router-link>
-        </p>
-      </form>
-    </div>
-    <p v-if="successMessage" class="success">{{ successMessage }}</p>
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+  <div class="login-container">
+    <h2>Login</h2>
+    <form @submit.prevent="login" autocomplete="off">
+      <div class="form-row">
+        <label for="username">Username</label>
+        <input v-model="username" type="text" id="username" required placeholder="Enter your username" />
+      </div>
+      <div class="form-row">
+        <label for="password">Password</label>
+        <input v-model="password" type="password" id="password" required placeholder="Enter your password" />
+      </div>
+      <button type="submit" class="login-btn">Login</button>
+      <div class="register-link">
+        Don't have an account?
+        <router-link to="/register">Register here</router-link>
+      </div>
+    </form>
+    <div v-if="successMessage" class="success-msg">{{ successMessage }}</div>
+    <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
   </div>
 </template>
 
@@ -66,78 +64,97 @@ export default {
 
 <style scoped>
 .login-container {
-  max-width: 400px;
-  margin: 20px auto;
-  padding: 30px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 32px 28px 24px 28px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e3e3e3;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 h2 {
   text-align: center;
-  color: #333;
-  margin-bottom: 25px;
-  font-size: 24px;
+  color: #007bff;
+  margin-bottom: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 .form-row {
   display: flex;
-  align-items: center;
-  margin-bottom: 15px;
+  flex-direction: column;
+  gap: 6px;
 }
-.form-row label {
-  width: 120px;
-  margin-right: 15px;
-  font-weight: bold;
-  text-align: right;
-  color: #555;
+label {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
 }
-.form-row input {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
+input {
+  padding: 9px 12px;
+  border: 1px solid #bfc9d1;
   border-radius: 5px;
-  box-sizing: border-box;
-  font-size: 16px;
+  font-size: 1rem;
+  background: #f8fafc;
+  transition: border 0.2s;
 }
-button {
-  width: 100%;
-  padding: 12px;
-  background-color: #007bff;
-  color: white;
+input:focus {
+  border: 1.5px solid #007bff;
+  outline: none;
+  background: #fff;
+}
+.login-btn {
+  margin-top: 10px;
+  padding: 11px 0;
+  background: linear-gradient(90deg, #007bff 60%, #0056b3 100%);
+  color: #fff;
   border: none;
   border-radius: 5px;
-  font-size: 18px;
+  font-weight: bold;
+  font-size: 1.08rem;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  margin-top: 20px;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.08);
 }
-button:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
+.login-btn:hover {
+  background: linear-gradient(90deg, #0056b3 60%, #007bff 100%);
 }
-.error {
+.error-msg,
+.success-msg {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 8px 0;
+}
+.error-msg {
   color: #dc3545;
-  margin-top: 15px;
-  text-align: center;
-  font-weight: bold;
+  background: #fff0f2;
+  border: 1px solid #f5c2c7;
 }
-.success {
+.success-msg {
   color: #28a745;
-  margin-top: 15px;
-  text-align: center;
-  font-weight: bold;
+  background: #eafaf1;
+  border: 1px solid #b7e4c7;
 }
 .register-link {
-  margin-top: 25px;
+  margin-top: 22px;
   text-align: center;
-  font-size: 15px;
-  color: #666;
+  font-size: 1rem;
 }
 .register-link a {
   color: #007bff;
   text-decoration: none;
-  font-weight: bold;
+  font-weight: 600;
+  margin-left: 4px;
 }
 .register-link a:hover {
   text-decoration: underline;

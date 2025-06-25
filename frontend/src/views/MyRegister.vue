@@ -1,35 +1,38 @@
 <template>
   <div class="register-container">
-    <h2>Register</h2>
-    <form @submit.prevent="register">
-      <div>
-        <label>Username:</label>
-        <input v-model="form.username" required />
+    <h2>Create Your Account</h2>
+    <form @submit.prevent="register" autocomplete="off">
+      <div class="form-row">
+        <label for="username">Username</label>
+        <input v-model="form.username" id="username" required placeholder="Enter username" />
       </div>
-      <div>
-        <label>Password:</label>
-        <input v-model="form.password" type="password" required />
+      <div class="form-row">
+        <label for="password">Password</label>
+        <input v-model="form.password" id="password" type="password" required placeholder="Enter password" />
       </div>
-      <div>
-        <label>Email:</label>
-        <input v-model="form.email" type="email" required />
+      <div class="form-row">
+        <label for="email">Email</label>
+        <input v-model="form.email" id="email" type="email" required placeholder="Enter email" />
       </div>
-      <div>
-        <label>Full Name:</label>
-        <input v-model="form.full_name" required />
+      <div class="form-row">
+        <label for="full_name">Full Name</label>
+        <input v-model="form.full_name" id="full_name" required placeholder="Enter your full name" />
       </div>
-      <div>
-        <label>Role:</label>
-        <select v-model="form.role" required>
+      <div class="form-row">
+        <label for="role">Role</label>
+        <select v-model="form.role" id="role" required>
           <option value="staff">Staff</option>
           <option value="admin">Admin</option>
         </select>
       </div>
-      <button type="submit">Register</button>
+      <button type="submit" class="register-btn">Register</button>
     </form>
-    <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-    <div v-if="successMessage" class="success">{{ successMessage }}</div>
-    <router-link to="/">Back to Login</router-link>
+    <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
+    <div v-if="successMessage" class="success-msg">{{ successMessage }}</div>
+    <div class="login-link">
+      Already have an account?
+      <router-link to="/">Login here</router-link>
+    </div>
   </div>
 </template>
 
@@ -76,52 +79,112 @@ export default {
 
 <style scoped>
 .register-container {
-  max-width: 400px;
-  margin: 30px auto;
-  padding: 30px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 32px 28px 24px 28px;
+  border-radius: 12px;
   background: #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  border: 1px solid #e3e3e3;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
+
 h2 {
   text-align: center;
   color: #007bff;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
-form > div {
-  margin-bottom: 15px;
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 label {
-  display: block;
-  margin-bottom: 5px;
+  font-size: 1rem;
   color: #333;
+  font-weight: 500;
 }
+
 input, select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #bbb;
-  border-radius: 4px;
+  padding: 9px 12px;
+  border: 1px solid #bfc9d1;
+  border-radius: 5px;
+  font-size: 1rem;
+  background: #f8fafc;
+  transition: border 0.2s;
 }
-button {
-  width: 100%;
-  padding: 10px;
-  background: #007bff;
+
+input:focus, select:focus {
+  border: 1.5px solid #007bff;
+  outline: none;
+  background: #fff;
+}
+
+.register-btn {
+  margin-top: 10px;
+  padding: 11px 0;
+  background: linear-gradient(90deg, #007bff 60%, #0056b3 100%);
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   font-weight: bold;
+  font-size: 1.08rem;
   cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(0,123,255,0.08);
 }
-button:hover {
-  background: #0056b3;
+
+.register-btn:hover {
+  background: linear-gradient(90deg, #0056b3 60%, #007bff 100%);
 }
-.error {
+
+.error-msg, .success-msg {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 8px 0;
+}
+
+.error-msg {
   color: #dc3545;
-  margin-top: 10px;
+  background: #fff0f2;
+  border: 1px solid #f5c2c7;
 }
-.success {
+
+.success-msg {
   color: #28a745;
-  margin-top: 10px;
+  background: #eafaf1;
+  border: 1px solid #b7e4c7;
+}
+
+.login-link {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.login-link a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
 }
 </style>
