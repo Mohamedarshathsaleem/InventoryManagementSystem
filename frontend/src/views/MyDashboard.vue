@@ -1,60 +1,54 @@
 <template>
-  <div class="dashboard">
-    <header>
-      <h1>Product Management Dashboard</h1>
-      <button @click="logout">Logout</button>
-    </header>
+  <div class="dashboard-container">
+    <h2>Product Management Dashboard</h2>
+    <button @click="$router.push('/login')" class="logout-btn">Logout</button>
 
-    <main>
-      <section>
-        <h2>Products</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="product in products" :key="product.id">
-              <td>
-                <input v-if="editId === product.id" v-model="editProduct.name" />
-                <span v-else>{{ product.name }}</span>
-              </td>
-              <td>
-                <input v-if="editId === product.id" v-model="editProduct.price" type="number" />
-                <span v-else>{{ product.price }}</span>
-              </td>
-              <td>
-                <input v-if="editId === product.id" v-model="editProduct.stock" type="number" />
-                <span v-else>{{ product.stock }}</span>
-              </td>
-              <td>
-                <button v-if="editId === product.id" @click="updateProduct(product.id)">Save</button>
-                <button v-if="editId === product.id" @click="cancelEdit">Cancel</button>
-                <button v-else @click="startEdit(product)">Edit</button>
-                <button @click="deleteProduct(product.id)">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+    <div class="product-section">
+      <h3>Products</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="product in products" :key="product.id">
+            <td>{{ product.name }}</td>
+            <td>{{ product.price }}</td>
+            <td>{{ product.stock }}</td>
+            <td>
+              <button @click="editProduct(product)" class="edit-btn">Edit</button>
+              <button @click="deleteProduct(product.id)" class="delete-btn">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-      <section>
-        <h2>Add Product</h2>
-        <form @submit.prevent="addProduct">
-          <input v-model="newProduct.name" placeholder="Name" required />
-          <input v-model="newProduct.price" type="number" placeholder="Price" required />
-          <input v-model="newProduct.stock" type="number" placeholder="Stock" required />
-          <button type="submit">Add</button>
-        </form>
-      </section>
+    <div class="add-product-section">
+      <h3>Add Product</h3>
+      <form @submit.prevent="addProduct" autocomplete="off">
+        <div class="form-row">
+          <label for="product-name">Name</label>
+          <input v-model="newProduct.name" id="product-name" required placeholder="Enter product name" />
+        </div>
+        <div class="form-row">
+          <label for="product-price">Price</label>
+          <input v-model.number="newProduct.price" id="product-price" type="number" required placeholder="Enter price" />
+        </div>
+        <div class="form-row">
+          <label for="product-stock">Stock</label>
+          <input v-model.number="newProduct.stock" id="product-stock" type="number" required placeholder="Enter stock" />
+        </div>
+        <button type="submit" class="add-btn">Add</button>
+      </form>
+    </div>
 
-      <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-      <div v-if="successMessage" class="success">{{ successMessage }}</div>
-    </main>
+    <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
+    <div v-if="successMessage" class="success-msg">{{ successMessage }}</div>
   </div>
 </template>
 
@@ -64,181 +58,187 @@ export default {
   data() {
     return {
       products: [],
-      newProduct: { name: '', price: '', stock: '' },
-      editId: null,
-      editProduct: {},
+      newProduct: { name: '', price: 0, stock: 0 },
       errorMessage: '',
       successMessage: ''
     };
   },
-  created() {
-    this.fetchProducts();
-  },
   methods: {
-    getAuthHeaders() {
-      return {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('jwt_token')
-      };
-    },
     async fetchProducts() {
       try {
+        const token = localStorage.getItem('jwt_token');
         const res = await fetch('http://localhost:8000/api/products', {
-          headers: this.getAuthHeaders()
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        this.products = await res.json();
-      } catch (err) {
-        this.errorMessage = 'Failed to load products.';
+        const data = await res.json();
+        if (res.ok) {
+          this.products = data;
+        } else {
+          this.errorMessage = data.error || 'Failed to fetch products';
+        }
+      } catch {
+        this.errorMessage = 'Network error. Please try again.';
       }
     },
     async addProduct() {
       this.errorMessage = '';
       this.successMessage = '';
       try {
+        const token = localStorage.getItem('jwt_token');
         const res = await fetch('http://localhost:8000/api/products', {
           method: 'POST',
-          headers: this.getAuthHeaders(),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(this.newProduct)
         });
         const data = await res.json();
         if (res.ok) {
-          this.successMessage = 'Product added!';
-          this.newProduct = { name: '', price: '', stock: '' };
+          this.successMessage = data.message;
+          this.newProduct = { name: '', price: 0, stock: 0 };
           this.fetchProducts();
         } else {
-          this.errorMessage = data.error || 'Failed to add product.';
+          this.errorMessage = data.error || 'Failed to add product';
         }
       } catch {
-        this.errorMessage = 'Failed to add product.';
-      }
-    },
-    startEdit(product) {
-      this.editId = product.id;
-      this.editProduct = { ...product };
-    },
-    cancelEdit() {
-      this.editId = null;
-      this.editProduct = {};
-    },
-    async updateProduct(id) {
-      this.errorMessage = '';
-      this.successMessage = '';
-      try {
-        const res = await fetch(`http://localhost:8000/api/products/${id}`, {
-          method: 'PUT',
-          headers: this.getAuthHeaders(),
-          body: JSON.stringify(this.editProduct)
-        });
-        const data = await res.json();
-        if (res.ok) {
-          this.successMessage = 'Product updated!';
-          this.editId = null;
-          this.editProduct = {};
-          this.fetchProducts();
-        } else {
-          this.errorMessage = data.error || 'Failed to update product.';
-        }
-      } catch {
-        this.errorMessage = 'Failed to update product.';
+        this.errorMessage = 'Network error. Please try again.';
       }
     },
     async deleteProduct(id) {
       this.errorMessage = '';
       this.successMessage = '';
-      if (!confirm('Are you sure you want to delete this product?')) return;
       try {
+        const token = localStorage.getItem('jwt_token');
         const res = await fetch(`http://localhost:8000/api/products/${id}`, {
           method: 'DELETE',
-          headers: this.getAuthHeaders()
+          headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
         if (res.ok) {
-          this.successMessage = 'Product deleted!';
+          this.successMessage = data.message;
           this.fetchProducts();
         } else {
-          this.errorMessage = data.error || 'Failed to delete product.';
+          this.errorMessage = data.error || 'Failed to delete product';
         }
       } catch {
-        this.errorMessage = 'Failed to delete product.';
+        this.errorMessage = 'Network error. Please try again.';
       }
     },
-    logout() {
-      localStorage.removeItem('jwt_token');
-      localStorage.removeItem('user_info');
-      this.$router.push('/');
+    editProduct(product) {
+      // Implement edit functionality if needed
+      console.log('Edit product:', product);
     }
+  },
+  mounted() {
+    this.fetchProducts();
   }
 };
 </script>
 
 <style scoped>
-.dashboard {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+.dashboard-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 32px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  border-radius: 12px;
+  border: 1px solid #e3e3e3;
 }
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  color: #343a40;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 1.8rem;
+h2 {
+  text-align: center;
   color: #007bff;
+  margin-bottom: 20px;
 }
 
-header button {
-  padding: 8px 15px;
-  background-color: #dc3545;
-  color: white;
+.logout-btn {
+  float: right;
+  padding: 8px 16px;
+  background: #dc3545;
+  color: #fff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s ease;
 }
 
-header button:hover {
-  background-color: #c82333;
-}
-
-main {
-  flex-grow: 1;
-  padding: 30px;
-  background-color: #f0f2f5;
+.product-section, .add-product-section {
+  margin-top: 20px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-top: 10px;
 }
 
 th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
 th {
-  background: #007bff;
+  background-color: #f8f9fa;
+}
+
+.edit-btn, .delete-btn, .add-btn {
+  padding: 6px 12px;
+  margin-right: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-btn {
+  background-color: #007bff;
   color: #fff;
 }
 
-.error {
-  color: #dc3545;
-  margin-top: 10px;
+.delete-btn {
+  background-color: #dc3545;
+  color: #fff;
 }
 
-.success {
+.add-btn {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 15px;
+}
+
+label {
+  font-weight: 500;
+}
+
+input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.error-msg, .success-msg {
+  margin-top: 15px;
+  padding: 10px;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.error-msg {
+  color: #dc3545;
+  background: #fff0f2;
+  border: 1px solid #f5c2c7;
+}
+
+.success-msg {
   color: #28a745;
-  margin-top: 10px;
+  background: #eafaf1;
+  border: 1px solid #b7e4c7;
 }
 </style>
