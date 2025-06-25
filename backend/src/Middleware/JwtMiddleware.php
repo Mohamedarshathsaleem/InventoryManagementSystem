@@ -34,8 +34,23 @@ class JwtMiddleware implements MiddlewareInterface
         $jwt = $matches[1];
         try {
             $decoded = \Firebase\JWT\JWT::decode($jwt, new \Firebase\JWT\Key($this->secretKey, 'HS256'));
-            // Optionally, you can add the decoded user to the request attributes
             $request = $request->withAttribute('user', $decoded);
+
+            // Check role for specific endpoints
+            if ($request->getMethod() === 'PUT' && preg_match('#^/api/products/\d+$#', $path)) {
+                if (isset($decoded->role) && $decoded->role !== 'admin') {
+                    $response = new \Slim\Psr7\Response();
+                    $response->getBody()->write(json_encode(['error' => 'Permission denied. Admins only for editing.']));
+                    return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+                }
+            }
+            if ($request->getMethod() === 'DELETE' && preg_match('#^/api/products/\d+$#', $path)) {
+                if (isset($decoded->role) && $decoded->role !== 'admin') {
+                    $response = new \Slim\Psr7\Response();
+                    $response->getBody()->write(json_encode(['error' => 'Permission denied. Admins only for deleting.']));
+                    return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+                }
+            }
         } catch (\Exception $e) {
             $response = new \Slim\Psr7\Response();
             $response->getBody()->write(json_encode(['error' => 'Invalid token: ' . $e->getMessage()]));

@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     <h2>Product Management Dashboard</h2>
-    <button @click="$router.push('/login')" class="logout-btn">Logout</button>
+    <button @click="logout" class="logout-btn">Logout</button>
 
     <div class="product-section">
       <h3>Products</h3>
@@ -20,8 +20,8 @@
             <td>{{ product.price }}</td>
             <td>{{ product.stock }}</td>
             <td>
-              <button @click="startEdit(product)" class="edit-btn">Edit</button>
-              <button @click="confirmDelete(product.id)" class="delete-btn">Delete</button>
+              <button @click="startEdit(product)" :disabled="userRole !== 'admin'" class="edit-btn">Edit</button>
+              <button @click="confirmDelete(product.id)" :disabled="userRole !== 'admin'" class="delete-btn">Delete</button>
             </td>
           </tr>
         </tbody>
@@ -98,7 +98,8 @@ export default {
       successMessage: '',
       showDeleteConfirm: false,
       productToDelete: null,
-      showEditPopup: false
+      showEditPopup: false,
+      userRole: JSON.parse(localStorage.getItem('user_info') || '{}').role || 'staff'
     };
   },
   methods: {
@@ -212,6 +213,11 @@ export default {
     cancelEdit() {
       this.showEditPopup = false;
       this.editProduct = { id: null, name: '', price: '', stock: 0 };
+    },
+    logout() {
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user_info');
+      this.$router.push('api/auth/login');
     }
   },
   mounted() {
@@ -277,13 +283,23 @@ th {
 }
 
 .edit-btn {
-  background-color: #007bff;
+  background-color: #007bff; /* Blue color for Edit button */
   color: #fff;
+}
+
+.edit-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .delete-btn {
   background-color: #dc3545;
   color: #fff;
+}
+
+.delete-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .add-btn {
@@ -386,7 +402,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .button-group {
   display: flex;
   justify-content: center;
-  gap: 15px; /* Increased spacing between Save and Cancel buttons */
+  gap: 15px;
   margin-top: 15px;
 }
 </style>
