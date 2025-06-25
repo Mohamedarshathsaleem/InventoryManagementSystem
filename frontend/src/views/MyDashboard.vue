@@ -217,7 +217,7 @@ export default {
     logout() {
       localStorage.removeItem('jwt_token');
       localStorage.removeItem('user_info');
-      this.$router.push('api/auth/login');
+      this.$router.push('/'); // Redirect to root (login page)
     }
   },
   mounted() {
