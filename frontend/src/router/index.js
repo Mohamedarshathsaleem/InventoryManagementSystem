@@ -6,6 +6,7 @@ import Products from '../views/Products.vue'
 import Suppliers from '../views/Suppliers.vue'
 import Users from '../views/Users.vue'
 import MyLogin from '../views/MyLogin.vue'
+import MyDashboard from '@/views/MyDashboard.vue'
 
 const routes = [
   { path: '/', component: MyLogin }, // Default route to login page
@@ -15,6 +16,11 @@ const routes = [
   { path: '/products', component: Products },
   { path: '/suppliers', component: Suppliers },
   { path: '/users', component: Users },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: MyDashboard
+  }
 ]
 
 const router = createRouter({
