@@ -7,6 +7,7 @@ import Suppliers from '../views/Suppliers.vue'
 import Users from '../views/Users.vue'
 import MyLogin from '../views/MyLogin.vue'
 import MyDashboard from '@/views/MyDashboard.vue'
+import MyRegister from '@/views/MyRegister.vue'
 
 const routes = [
   { path: '/', component: MyLogin }, // Default route to login page
@@ -20,6 +21,11 @@ const routes = [
     path: '/dashboard',
     name: 'Dashboard',
     component: MyDashboard
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: MyRegister
   }
 ]
 
