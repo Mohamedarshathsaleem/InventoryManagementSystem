@@ -20,8 +20,8 @@
             <td>{{ product.price }}</td>
             <td>{{ product.stock }}</td>
             <td>
-              <button @click="editProduct(product)" class="edit-btn">Edit</button>
-              <button @click="deleteProduct(product.id)" class="delete-btn">Delete</button>
+              <button @click="startEdit(product)" class="edit-btn">Edit</button>
+              <button @click="confirmDelete(product.id)" class="delete-btn">Delete</button>
             </td>
           </tr>
         </tbody>
@@ -37,7 +37,7 @@
         </div>
         <div class="form-row">
           <label for="product-price">Price</label>
-          <input v-model.number="newProduct.price" id="product-price" type="number" required placeholder="Enter price" />
+          <input v-model="newProduct.price" id="product-price" type="number" step="0.01" required placeholder="Enter price (e.g., 90.90)" />
         </div>
         <div class="form-row">
           <label for="product-stock">Stock</label>
@@ -49,6 +49,40 @@
 
     <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
     <div v-if="successMessage" class="success-msg">{{ successMessage }}</div>
+
+    <!-- Delete Confirmation Popup -->
+    <div v-if="showDeleteConfirm" class="modal">
+      <div class="modal-content">
+        <p>Are you sure you want to delete this product?</p>
+        <button @click="deleteProduct" class="confirm-btn">Yes</button>
+        <button @click="showDeleteConfirm = false" class="cancel-btn">No</button>
+      </div>
+    </div>
+
+    <!-- Edit Popup -->
+    <div v-if="showEditPopup" class="modal">
+      <div class="modal-content">
+        <h3>Edit Product</h3>
+        <form @submit.prevent="saveEdit" autocomplete="off">
+          <div class="form-row">
+            <label for="edit-name">Name</label>
+            <input v-model="editProduct.name" id="edit-name" required placeholder="Enter product name" />
+          </div>
+          <div class="form-row">
+            <label for="edit-price">Price</label>
+            <input v-model="editProduct.price" id="edit-price" type="number" step="0.01" required placeholder="Enter price (e.g., 90.90)" />
+          </div>
+          <div class="form-row">
+            <label for="edit-stock">Stock</label>
+            <input v-model.number="editProduct.stock" id="edit-stock" type="number" required placeholder="Enter stock" />
+          </div>
+          <div class="button-group">
+            <button type="submit" class="save-btn">Save</button>
+            <button type="button" @click="cancelEdit" class="cancel-btn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -58,9 +92,13 @@ export default {
   data() {
     return {
       products: [],
-      newProduct: { name: '', price: 0, stock: 0 },
+      newProduct: { name: '', price: '', stock: 0 },
+      editProduct: { id: null, name: '', price: '', stock: 0 },
       errorMessage: '',
-      successMessage: ''
+      successMessage: '',
+      showDeleteConfirm: false,
+      productToDelete: null,
+      showEditPopup: false
     };
   },
   methods: {
@@ -85,18 +123,23 @@ export default {
       this.successMessage = '';
       try {
         const token = localStorage.getItem('jwt_token');
+        const payload = {
+          name: this.newProduct.name,
+          price: parseFloat(this.newProduct.price) || 0,
+          stock: parseInt(this.newProduct.stock) || 0
+        };
         const res = await fetch('http://localhost:8000/api/products', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify(this.newProduct)
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (res.ok) {
           this.successMessage = data.message;
-          this.newProduct = { name: '', price: 0, stock: 0 };
+          this.newProduct = { name: '', price: '', stock: 0 };
           this.fetchProducts();
         } else {
           this.errorMessage = data.error || 'Failed to add product';
@@ -105,12 +148,12 @@ export default {
         this.errorMessage = 'Network error. Please try again.';
       }
     },
-    async deleteProduct(id) {
+    async deleteProduct() {
       this.errorMessage = '';
       this.successMessage = '';
       try {
         const token = localStorage.getItem('jwt_token');
-        const res = await fetch(`http://localhost:8000/api/products/${id}`, {
+        const res = await fetch(`http://localhost:8000/api/products/${this.productToDelete}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -123,11 +166,52 @@ export default {
         }
       } catch {
         this.errorMessage = 'Network error. Please try again.';
+      } finally {
+        this.showDeleteConfirm = false;
+        this.productToDelete = null;
       }
     },
-    editProduct(product) {
-      // Implement edit functionality if needed
-      console.log('Edit product:', product);
+    confirmDelete(id) {
+      this.productToDelete = id;
+      this.showDeleteConfirm = true;
+    },
+    startEdit(product) {
+      this.editProduct = { ...product };
+      this.showEditPopup = true;
+    },
+    async saveEdit() {
+      this.errorMessage = '';
+      this.successMessage = '';
+      try {
+        const token = localStorage.getItem('jwt_token');
+        const payload = {
+          name: this.editProduct.name,
+          price: parseFloat(this.editProduct.price) || 0,
+          stock: parseInt(this.editProduct.stock) || 0
+        };
+        const res = await fetch(`http://localhost:8000/api/products/${this.editProduct.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          this.successMessage = data.message;
+          this.showEditPopup = false;
+          this.fetchProducts();
+        } else {
+          this.errorMessage = data.error || 'Failed to update product';
+        }
+      } catch {
+        this.errorMessage = 'Network error. Please try again.';
+      }
+    },
+    cancelEdit() {
+      this.showEditPopup = false;
+      this.editProduct = { id: null, name: '', price: '', stock: 0 };
     }
   },
   mounted() {
@@ -145,6 +229,7 @@ export default {
   box-shadow: 0 6px 24px rgba(0,0,0,0.10);
   border-radius: 12px;
   border: 1px solid #e3e3e3;
+  position: relative;
 }
 
 h2 {
@@ -183,7 +268,7 @@ th {
   background-color: #f8f9fa;
 }
 
-.edit-btn, .delete-btn, .add-btn {
+.edit-btn, .delete-btn, .add-btn, .save-btn, .cancel-btn, .confirm-btn {
   padding: 6px 12px;
   margin-right: 5px;
   border: none;
@@ -206,6 +291,21 @@ th {
   color: #fff;
 }
 
+.save-btn {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.confirm-btn {
+  background-color: #dc3545;
+  color: #fff;
+}
+
 .form-row {
   display: flex;
   flex-direction: column;
@@ -221,6 +321,16 @@ input {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .error-msg, .success-msg {
@@ -240,5 +350,43 @@ input {
   color: #28a745;
   background: #eafaf1;
   border: 1px solid #b7e4c7;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.modal-content h3 {
+  margin-bottom: 15px;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* Increased spacing between Save and Cancel buttons */
+  margin-top: 15px;
 }
 </style>
