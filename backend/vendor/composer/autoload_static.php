@@ -55,6 +55,7 @@ class ComposerStaticInit98bec10cc6f8237c326ea8d8dc807bbd
         ),
         'F' => 
         array (
+            'Firebase\\JWT\\' => 13,
             'Fig\\Http\\Message\\' => 17,
             'FastRoute\\' => 10,
         ),
@@ -157,6 +158,10 @@ class ComposerStaticInit98bec10cc6f8237c326ea8d8dc807bbd
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
         ),
+        'Firebase\\JWT\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+        ),
         'Fig\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/fig/http-message-util/src',
@@ -212,7 +217,7 @@ class ComposerStaticInit98bec10cc6f8237c326ea8d8dc807bbd
         ),
         'App\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/src/App',
+            0 => __DIR__ . '/../..' . '/src',
         ),
     );
 
