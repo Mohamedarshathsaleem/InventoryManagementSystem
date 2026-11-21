@@ -18,13 +18,6 @@
         <label for="full_name">Full Name</label>
         <input v-model="form.full_name" id="full_name" required placeholder="Enter your full name" />
       </div>
-      <div class="form-row">
-        <label for="role">Role</label>
-        <select v-model="form.role" id="role" required>
-          <option value="staff">Staff</option>
-          <option value="admin">Admin</option>
-        </select>
-      </div>
       <button type="submit" class="register-btn">Register</button>
     </form>
     <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
@@ -45,7 +38,6 @@ export default {
         username: '',
         password: '',
         email: '',
-        role: 'staff',
         full_name: ''
       },
       errorMessage: '',
@@ -65,7 +57,7 @@ export default {
         const data = await res.json();
         if (res.ok && data.message) {
           this.successMessage = data.message + ' You can now log in.';
-          this.form = { username: '', password: '', email: '', role: 'staff', full_name: '' };
+          this.form = { username: '', password: '', email: '', full_name: '' };
         } else {
           this.errorMessage = data.error || 'Registration failed.';
         }

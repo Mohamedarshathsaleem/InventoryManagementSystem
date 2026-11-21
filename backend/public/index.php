@@ -1,8 +1,8 @@
 <?php
-//php -S localhost:8000 -t public
-//npm run serve
+// Run locally: JWT_SECRET=<32+ chars> php -S localhost:8000 -t public
 
-header('Access-Control-Allow-Origin: *');
+$allowedOrigin = getenv('CORS_ORIGIN') ?: 'http://localhost:8080';
+header('Access-Control-Allow-Origin: ' . $allowedOrigin);
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -22,15 +22,21 @@ use App\db;
 use App\Middleware\JwtMiddleware;
 use App\Controllers\AuthController;
 use App\Controllers\ProductController;
-use App\Services\ProductService;
 
 // Initialize Slim app
 $app = AppFactory::create();
-$secretKey = "my-secret-key"; // Use env variable in production
+$secretKey = getenv('JWT_SECRET') ?: '';
+if (strlen($secretKey) < 32) {
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Server misconfigured: set a JWT_SECRET of at least 32 characters.']);
+    exit();
+}
+$debug = getenv('APP_DEBUG') === 'true';
 $unprotectedRoutes = ['/api/auth/register', '/api/auth/login'];
 $jwtMiddleware = new JwtMiddleware($secretKey, $unprotectedRoutes);
 $app->addRoutingMiddleware();
-$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+$errorMiddleware = $app->addErrorMiddleware($debug, true, true);
 
 // --- Unprotected Routes (Register & Login) ---
 $app->post('/api/auth/register', function (Request $request, Response $response) use ($secretKey) {
@@ -47,7 +53,8 @@ $app->post('/api/auth/register', function (Request $request, Response $response)
         $response->getBody()->write(json_encode($result));
         return $response->withStatus(201)->withHeader('Content-Type', 'application/json');
     } catch (\Throwable $e) {
-        $errorBody = json_encode(['error' => 'Server error: ' . $e->getMessage()]);
+        error_log($e->getMessage());
+        $errorBody = json_encode(['error' => 'Server error. Please try again later.']);
         $response->getBody()->write($errorBody);
         return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
     }
@@ -67,7 +74,8 @@ $app->post('/api/auth/login', function (Request $request, Response $response) us
         $response->getBody()->write(json_encode($result));
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     } catch (\Throwable $e) {
-        $errorBody = json_encode(['error' => 'Server error: ' . $e->getMessage()]);
+        error_log($e->getMessage());
+        $errorBody = json_encode(['error' => 'Server error. Please try again later.']);
         $response->getBody()->write($errorBody);
         return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
     }
@@ -122,7 +130,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
 $app->add(function (Request $request, RequestHandler $handler): Response {
     $response = $handler->handle($request);
     return $response
-        ->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Origin', getenv('CORS_ORIGIN') ?: 'http://localhost:8080')
         ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 });

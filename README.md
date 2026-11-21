@@ -1,219 +1,110 @@
 # 📦 Inventory Management System
 
-A full-stack **Inventory Management System** built with **Vue.js** on the frontend and **PHP (Laravel)** on the backend. Designed to help businesses efficiently track products, manage stock levels, and streamline inventory operations through a clean, responsive interface.
+[![CI](https://github.com/Mohamedarshathsaleem/InventoryManagementSystem/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohamedarshathsaleem/InventoryManagementSystem/actions/workflows/ci.yml)
+![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)
+![Slim](https://img.shields.io/badge/Slim-4-719E40)
+![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)
+
+**A Vue 3 single-page app on a PHP Slim 4 REST API, with JWT authentication and role-based access to product management.**
+
+<!-- Add a screenshot or GIF of the dashboard here, e.g. docs/dashboard.png -->
+<!-- ![Dashboard](docs/dashboard.png) -->
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-- **Product Management** — Add, edit, view, and delete products with details like name, price, quantity, and category
-- **Category Management** — Organise products into categories for easier navigation and filtering
-- **Stock Tracking** — Monitor real-time stock levels and get visibility into inventory changes
-- **Supplier Management** — Maintain supplier records and associate them with products
-- **Search & Filter** — Quickly find products by name, category, or other attributes
-- **RESTful API** — PHP backend exposes a clean REST API consumed by the Vue.js SPA
-- **Responsive UI** — Works across desktop and mobile browsers
+- **JWT authentication.** Register and log in; the API issues a signed HS256 token that expires after 1 hour.
+- **Role-based access.** Staff can view and add products; only **admins** can edit or delete them. The check is enforced in API middleware, not just hidden in the UI.
+- **Product CRUD.** Create, list, update (partial updates) and delete products with name, price and stock.
+- **Secure password storage.** bcrypt via `password_hash`, with automatic upgrade of any legacy plain-text accounts on first login.
+- **Tested.** PHPUnit suite against an in-memory SQLite database, run on every push by GitHub Actions.
 
----
+## 🛠️ Tech stack
 
-## 🛠️ Tech Stack
+| Layer | Technology |
+|---|---|
+| Frontend | Vue 3, Vue Router 4, Fetch API |
+| Backend | PHP 8, Slim 4, PSR-7, firebase/php-jwt |
+| Database | MySQL 8 (PDO, prepared statements) |
+| Testing / CI | PHPUnit 9, GitHub Actions |
 
-| Layer      | Technology            |
-|------------|-----------------------|
-| Frontend   | Vue.js, JavaScript, HTML/CSS |
-| Backend    | PHP (Laravel)         |
-| Database   | MySQL                 |
-| API Style  | RESTful               |
-
----
-
-## 📁 Project Structure
+## 🏗️ Architecture
 
 ```
-InventoryManagementSystem/
-├── backend/               # PHP/Laravel REST API
-│   ├── app/
-│   │   ├── Http/
-│   │   │   ├── Controllers/   # API Controllers
-│   │   │   └── Middleware/
-│   │   └── Models/            # Eloquent models
-│   ├── database/
-│   │   └── migrations/        # Database migrations
-│   ├── routes/
-│   │   └── api.php            # API route definitions
-│   ├── .env.example
-│   └── composer.json
-│
-├── frontend/              # Vue.js Single Page Application
-│   ├── src/
-│   │   ├── components/        # Reusable Vue components
-│   │   ├── views/             # Page-level views
-│   │   ├── router/            # Vue Router configuration
-│   │   ├── store/             # State management (Vuex/Pinia)
-│   │   └── services/          # API service layer
-│   ├── public/
-│   └── package.json
-│
-└── package-lock.json
+Vue SPA (localhost:8080)
+   │  fetch + Authorization: Bearer <JWT>
+   ▼
+Slim 4 API (localhost:8000)
+   ├── /api/auth/register, /api/auth/login   → AuthController   (public)
+   └── /api/products[/{id}]                  → ProductController (JwtMiddleware: admin-only PUT/DELETE)
+   ▼
+MySQL (users, products)
 ```
 
----
+### API
 
-## ⚙️ Prerequisites
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | – | Create a staff account |
+| POST | `/api/auth/login` | – | Returns `{ token, user }` |
+| GET | `/api/products` | JWT | List products |
+| POST | `/api/products` | JWT | Add a product |
+| PUT | `/api/products/{id}` | JWT · admin | Update name / price / stock |
+| DELETE | `/api/products/{id}` | JWT · admin | Delete a product |
 
-Make sure you have the following installed before setting up the project:
+## 👤 My role
 
-- [Node.js](https://nodejs.org/) (v16+) and npm
-- [PHP](https://www.php.net/) (v8.0+)
-- [Composer](https://getcomposer.org/)
-- [MySQL](https://www.mysql.com/) (v8.0+)
-- A local server environment such as [XAMPP](https://www.apachefriends.org/), [Laragon](https://laragon.org/), or Laravel's built-in dev server
+This was a 3-person course project. I:
 
----
+- set up the project structure, Slim backend and Vue frontend
+- built the **dashboard** and **product management** (frontend views and the product update endpoint)
+- built the **registration flow** and redesigned the login/registration UI
+- later hardened the codebase: bcrypt password hashing, server-side role assignment, secrets moved to environment variables, a shared DB connection (fixing `lastInsertId`), the PHPUnit suite and CI
 
-## 🔧 Installation & Setup
+## 🚀 Running locally
 
-### 1. Clone the Repository
+**Prerequisites:** PHP 8.1+, Composer, Node.js 18+, MySQL 8.
 
 ```bash
 git clone https://github.com/Mohamedarshathsaleem/InventoryManagementSystem.git
 cd InventoryManagementSystem
-```
 
----
+# 1. Database
+mysql -u root -p < database/schema.sql
 
-### 2. Backend Setup (PHP / Laravel)
-
-```bash
+# 2. Backend (http://localhost:8000)
 cd backend
-```
-
-**Install PHP dependencies:**
-
-```bash
 composer install
-```
+export JWT_SECRET="$(openssl rand -hex 32)"   # see backend/.env.example for all settings
+export DB_PASSWORD="your-mysql-password"
+php -S localhost:8000 -t public
 
-**Create the environment file:**
-
-```bash
-cp .env.example .env
-```
-
-**Configure your database in `.env`:**
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=inventory_db
-DB_USERNAME=your_db_username
-DB_PASSWORD=your_db_password
-```
-
-**Generate the application key:**
-
-```bash
-php artisan key:generate
-```
-
-**Run database migrations:**
-
-```bash
-php artisan migrate
-```
-
-**(Optional) Seed the database with sample data:**
-
-```bash
-php artisan db:seed
-```
-
-**Start the backend server:**
-
-```bash
-php artisan serve
-```
-
-The API will be available at `http://localhost:8000`.
-
----
-
-### 3. Frontend Setup (Vue.js)
-
-Open a new terminal:
-
-```bash
+# 3. Frontend (http://localhost:8080), in a second terminal
 cd frontend
-```
-
-**Install Node dependencies:**
-
-```bash
 npm install
+npm run serve
 ```
 
-**Create the environment file (if applicable):**
+To make an admin, register normally and then run:
+
+```sql
+UPDATE users SET role = 'admin' WHERE username = 'your-username';
+```
+
+### Tests
 
 ```bash
-cp .env.example .env
+cd backend && vendor/bin/phpunit
 ```
 
-Update the API base URL in `.env` to point to your backend:
+## 🧭 Roadmap
 
-```env
-VITE_API_BASE_URL=http://localhost:8000/api
-```
+- Supplier, order and stock-movement modules (the frontend routes are already in place)
+- Move role checks from path matching into per-route middleware
+- Refresh tokens and logout/blacklisting
+- Docker Compose for one-command setup
 
-**Start the development server:**
+## 📄 License
 
-```bash
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173` (or as shown in your terminal).
-
----
-
-## 🏗️ Building for Production
-
-**Frontend:**
-
-```bash
-cd frontend
-npm run build
-```
-
-The compiled assets will be placed in the `frontend/dist/` directory.
-
-**Backend:**
-
-Make sure to set `APP_ENV=production` and `APP_DEBUG=false` in your `.env`, then optimise the application:
-
-```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-```
-
----
-
-## 📡 API Endpoints
-
-The backend exposes a RESTful API. Below are the main endpoint groups:
-
-| Method | Endpoint              | Description              |
-|--------|-----------------------|--------------------------|
-| GET    | `/api/products`       | List all products         |
-| POST   | `/api/products`       | Create a new product      |
-| GET    | `/api/products/{id}`  | Get a single product      |
-| PUT    | `/api/products/{id}`  | Update a product          |
-| DELETE | `/api/products/{id}`  | Delete a product          |
-| GET    | `/api/categories`     | List all categories       |
-| POST   | `/api/categories`     | Create a new category     |
-| GET    | `/api/suppliers`      | List all suppliers        |
-| POST   | `/api/suppliers`      | Create a new supplier     |
-
-> **Note:** Refer to the `routes/api.php` file in the backend for the full and most up-to-date list of routes.
-
----
+[MIT](LICENSE)

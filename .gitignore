@@ -1,0 +1,15 @@
+# Dependencies (installed with composer install / npm install)
+node_modules/
+backend/vendor/
+
+# Environment and secrets
+.env
+*.env
+!.env.example
+
+# Build and tooling output
+frontend/dist/
+.phpunit.result.cache
+.DS_Store
+.idea/
+.vscode/
