@@ -1,13 +1,13 @@
 {
   "name": "frontend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Vue 3 frontend for the Inventory Management System",
   "license": "ISC",
   "author": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "vue-cli-service serve"
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
   },
   "dependencies": {
     "vue": "^3.0.0",
